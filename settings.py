@@ -1,6 +1,11 @@
 """ -*- coding: utf-8 -*- """
 
-TOKEN = '%your_token_here%'
+PROD = False
+
+if PROD:
+    TOKEN = '416537278:AAE4yPPd_P3XbXBCsHC9UanRy_8IdkPcmqg'
+else:
+    TOKEN = '422033407:AAG1zhLbyhh8vuQ5POjwQWoQc4q4BS4A7lI'
 
 TEXTS = {
     'hello': '''Hi, I\'m Jira Bot!👻 Lets start with command /login.''',
