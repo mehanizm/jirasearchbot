@@ -36,10 +36,18 @@ def on_callback_query(msg):
             ])
 
         #make answer string. It is the original string with change summery to description
-        answer_text = '{} [{}: {}]({})\n*Поставил:* [{}]({})\n*Делает:* [{}]({})\n\n📄 *Подробности:*\n{}'.\
-            format(issue['status_logo'], issue['key'], issue['status'], issue['link'],\
-            issue['author'], issue['author_link'], issue['worker'], issue['worker_link'],\
-            issue['desc'])
+        #check special logic if HFLabs
+        server = current_user.get_server()
+        if server == 'https://jira.hflabs.ru/':
+            answer_text = '{} [{}: {}]({})\n*Поставил:* [{}]({})\n*Делает:* [{}]({})\n*Закрывает:* [{}]({})\n\n📄 *Подробности:*\n{}'.\
+                format(issue['status_logo'], issue['key'], issue['status'], issue['link'],\
+                issue['author'], issue['author_link'], issue['worker'], issue['worker_link'],\
+                issue['closer'], issue['closer_link'], issue['desc'])
+        else:
+            answer_text = '{} [{}: {}]({})\n*Поставил:* [{}]({})\n*Делает:* [{}]({})\n\n📄 *Подробности:*\n{}'.\
+                format(issue['status_logo'], issue['key'], issue['status'], issue['link'],\
+                issue['author'], issue['author_link'], issue['worker'], issue['worker_link'],\
+                issue['desc'])
 
     #if state is 0 – this mean that before the state was long (description)
     elif state == '0':
@@ -51,10 +59,18 @@ def on_callback_query(msg):
             ])
 
         #make answer string. It is the original string with change summery to description
-        answer_text = '{} [{}: {}]({})\n*Поставил:* [{}]({})\n*Делает:* [{}]({})\n\n📄 *Подробности:*\n{}'.\
-            format(issue['status_logo'], issue['key'], issue['status'], issue['link'],\
-            issue['author'], issue['author_link'], issue['worker'], issue['worker_link'],\
-            issue['summary'])
+        #check special logic if HFLabs
+        server = current_user.get_server()
+        if server == 'https://jira.hflabs.ru/':
+            answer_text = '{} [{}: {}]({})\n*Поставил:* [{}]({})\n*Делает:* [{}]({})\n*Закрывает:* [{}]({})\n\n📄 *Подробности:*\n{}'.\
+                format(issue['status_logo'], issue['key'], issue['status'], issue['link'],\
+                issue['author'], issue['author_link'], issue['worker'], issue['worker_link'],\
+                issue['closer'], issue['closer_link'], issue['summary'])
+        else:
+            answer_text = '{} [{}: {}]({})\n*Поставил:* [{}]({})\n*Делает:* [{}]({})\n\n📄 *Подробности:*\n{}'.\
+                format(issue['status_logo'], issue['key'], issue['status'], issue['link'],\
+                issue['author'], issue['author_link'], issue['worker'], issue['worker_link'],\
+                issue['summary'])
 
     #get the message to edit using inline message id and than EDIT message
     message_to_edit = msg['inline_message_id']

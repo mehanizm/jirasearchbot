@@ -34,7 +34,11 @@ def on_inline_query(msg):
             #search strings
             search_string = '''(text ~ '{}*') AND (resolution = Unresolved)
                                     order by updated'''.format(query_string)
-            search_string_default = '''assignee = currentUser()
+            if current_user.get_server() == 'https://jira.hflabs.ru/':
+                search_string_default = '''assignee = currentUser() AND fixVersion not in
+                            (backlog, future) AND resolution = Unresolved order by updated'''
+            else:
+                search_string_default = '''assignee = currentUser()
                             AND resolution = Unresolved order by updated'''
             serch_string_in_default = '''(text ~ '{}*') AND (assignee = currentUser()
                         and resolution = Unresolved) order by updated'''.format(query_string)
@@ -61,10 +65,18 @@ def on_inline_query(msg):
                 issue_key = issue['key']
 
                 #make answer
-                answer_text = '{} [{}: {}]({})\n*Поставил:* [{}]({})\n*Делает:* [{}]({})\n\n📄 *Подробности:*\n{}'.\
-                    format(issue['status_logo'], issue['key'], issue['status'], issue['link'],\
-                    issue['author'], issue['author_link'], issue['worker'],\
-                    issue['worker_link'], issue['summary'])
+                server = current_user.get_server()
+                if server == 'https://jira.hflabs.ru/':
+                    answer_text = '{} [{}: {}]({})\n*Поставил:* [{}]({})\n*Делает:* [{}]({})\n*Закрывает:* [{}]({})\n\n📄 *Подробности:*\n{}'.\
+                        format(issue['status_logo'], issue['key'], issue['status'], issue['link'],\
+                        issue['author'], issue['author_link'], issue['worker'],\
+                        issue['worker_link'], issue['closer'], issue['closer_link'],\
+                        issue['summary'])
+                else:
+                    answer_text = '{} [{}: {}]({})\n*Поставил:* [{}]({})\n*Делает:* [{}]({})\n\n📄 *Подробности:*\n{}'.\
+                        format(issue['status_logo'], issue['key'], issue['status'], issue['link'],\
+                        issue['author'], issue['author_link'], issue['worker'],\
+                        issue['worker_link'], issue['summary'])
 
                 #make buttons
                 markup_link = InlineKeyboardMarkup(inline_keyboard=[
