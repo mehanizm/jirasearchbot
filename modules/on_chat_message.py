@@ -3,115 +3,117 @@
 import sqlite3
 import telepot
 from telepot import Bot
+from telepot.helper import Answerer
+from telepot.namedtuple import InlineQueryResultArticle, InputTextMessageContent,\
+                                    InlineKeyboardMarkup, InlineKeyboardButton
 from jira import JIRA
 from modules.JiraUser import JiraUser
-from settings import TOKEN, TEXTS
+from settings import TOKEN
 
 BOT = Bot(TOKEN)
+ANSWERER = Answerer(BOT)
 
-def on_chat_message(msg):
-    """ registration and work with text messages """
-    #parse message to get usefull info
-    content_type, chat_type, chat_id = telepot.glance(msg)
-    del content_type, chat_type
-    username = None
-    if 'username' in msg['chat'].keys():
-        username = msg['chat']['username']
+def on_inline_query(msg):
+    """ return results to inline queries """
 
-    #connect to DB
-    connect = sqlite3.connect('JSBOT.db')
+    def compute():
+        """ compute results to inline queries """
 
-    #if message is not a text – return
-    if 'text' in msg.keys():
-        command = msg['text']
-    else:
-        return
+        query_id, from_id, query_string = telepot.glance(msg, flavor='inline_query')
+        del query_id
+        cache_time = 0
 
-    #if it is a reply do some special logic – send comment to JIRA if we know user
-    if 'reply_to_message' in msg.keys() and 'entities' in msg['reply_to_message'].keys():
-        user_id = msg['from']['id']
-        comment_text = msg['text']
-        issue_key = msg['reply_to_message']['entities'][0]['url'].split('/')[-1]
-        comment_user = JiraUser(chat_id=user_id, connect=connect, JIRA=JIRA)
-        comment_user.add_comment(issue_key, comment_text)
-        return
+        connect = sqlite3.connect('JSBOT.db')
+        current_user = JiraUser(chat_id=from_id, connect=connect, JIRA=JIRA)
 
-    #create current user object
-    current_user = JiraUser(chat_id=chat_id, connect=connect, JIRA=JIRA)
+        articles = []
 
-    #LOGOUT logic
-    if command == '/logout':
+        #if the USER have success registration
+        if current_user.login_is_ok():
 
-        if current_user.is_exist():
-
-            current_user.erase_from_db()
-            BOT.sendMessage(chat_id, TEXTS['logout_success'])
-            return
-
-        else:
-
-            BOT.sendMessage(chat_id, TEXTS['cant_logout'])
-            return
-
-    #START logic
-    if command == '/start':
-
-        BOT.sendMessage(chat_id, TEXTS['hello'])
-
-    #LOGIN logic
-    if command == '/login':
-
-        if not current_user.is_exist():
-
-            BOT.sendMessage(chat_id, TEXTS['link'])
-            current_user.add_to_db(username)
-            current_user.update_status(2)
-
-        else:
-
-            if current_user.get_status() == 1:
-                BOT.sendMessage(chat_id, TEXTS['ok_inline'])
-
+            #search strings
+            search_string = '''(text ~ '{}*') AND (resolution = Unresolved)
+                                    order by updated'''.format(query_string)
+            if current_user.get_server() == 'https://jira.hflabs.ru/':
+                search_string_default = '''assignee = currentUser() AND fixVersion not in
+                            (backlog, future) AND resolution = Unresolved order by updated'''
             else:
-                current_user.erase_from_db()
-                BOT.sendMessage(chat_id, TEXTS['not_work'])
-                current_user.update_status(2)
+                search_string_default = '''assignee = currentUser()
+                            AND resolution = Unresolved order by updated'''
+            serch_string_in_default = '''(text ~ '{}*') AND (assignee = currentUser()
+                        and resolution = Unresolved) order by updated'''.format(query_string)
+            search_string_all = "(text ~ '{}*') order by updated".format(query_string)
+            search_string_issue = "issue = '{}'".format(query_string)
 
-    #logic to parse login and password from user. State == 2
-    else:
-
-        if current_user.get_status() == 2:
-
-            #save server link and ask for login
-            if not current_user.get_server():
-
-                current_user.update_server(command, username)
-                BOT.sendMessage(chat_id, TEXTS['login'])
-
-            #save login and ask for password
-            elif not current_user.get_auth()[0]:
-
-                current_user.update_login(command)
-                BOT.sendMessage(chat_id, TEXTS['password'])
-
-            #save password and check connection
-            elif not current_user.get_auth()[1]:
-
-                current_user.update_password(command)
-                server = current_user.get_server()
-                basic_auth = current_user.get_auth()
-
+            #searching in JIRA
+            if len(query_string) == 0:
+                get_issues = current_user.search_issues(search_string_default, 30)
+            else:
                 try:
-                    BOT.sendMessage(chat_id, TEXTS['check_login'])
-                    JIRA(server=server, basic_auth=basic_auth)
+                    get_issues = current_user.search_issues(search_string_issue)
                 except:
-                    current_user.update_status(0)
-                    BOT.sendMessage(chat_id, TEXTS['login_error'])
-                else:
-                    current_user.update_status(1)
-                    current_user.update_jira_name()
-                    BOT.sendMessage(chat_id, TEXTS['end_ok'])
+                    get_issues = current_user.search_issues(serch_string_in_default)
+                    if len(get_issues) < 3:
+                        get_issues = current_user.search_issues(search_string)
+                        if len(get_issues) < 3:
+                            get_issues = current_user.search_issues(search_string_all)
 
-    #clean memory
-    del current_user
-    connect.close()
+            #convert issues to telegram inline query format
+            for issue_object in get_issues:
+
+                issue = current_user.parse_issue(issue_object)
+                issue_key = issue['key']
+
+                #make answer
+                server = current_user.get_server()
+                if server == 'https://jira.hflabs.ru/':
+                    answer_text = '{} [{}: {}]({})\n*Поставил:* [{}]({})\n*Делает:* [{}]({})\n*Закрывает:* [{}]({})\n\n📄 *Подробности:*\n{}'.\
+                        format(issue['status_logo'], issue['key'], issue['status'], issue['link'],\
+                        issue['author'], issue['author_link'], issue['worker'],\
+                        issue['worker_link'], issue['closer'], issue['closer_link'],\
+                        issue['summary'])
+                else:
+                    answer_text = '{} [{}: {}]({})\n*Поставил:* [{}]({})\n*Делает:* [{}]({})\n\n📄 *Подробности:*\n{}'.\
+                        format(issue['status_logo'], issue['key'], issue['status'], issue['link'],\
+                        issue['author'], issue['author_link'], issue['worker'],\
+                        issue['worker_link'], issue['summary'])
+
+                #make buttons
+                markup_link = InlineKeyboardMarkup(inline_keyboard=[
+                    [InlineKeyboardButton(text='Add worklog', url=issue['worklog_link']),
+                     InlineKeyboardButton(text='More info', callback_data='1'+issue_key)],
+                    ])
+
+                #make inline Telegram answer
+                articles.append(InlineQueryResultArticle(
+                    id=issue_key,
+                    title="{}. {} {}".format(issue_key, issue['status_logo'], issue['status']),
+                    description=issue['summary'],
+                    input_message_content=InputTextMessageContent(
+                        message_text=answer_text,
+                        parse_mode='Markdown',
+                        disable_web_page_preview=True
+                    ),
+                    reply_markup=markup_link,
+                    thumb_url=issue['thumb_url'],
+                    thumb_width=48,
+                    thumb_height=48
+                    ))
+
+        #if the USER have NOT successful registration
+        else:
+            articles.append(InlineQueryResultArticle(
+                id='login',
+                title="You did not login to JIRA. Click here to login",
+                input_message_content=InputTextMessageContent(
+                    message_text="Please use command /login in @jirasearchBOT directly"
+                    )
+                )
+                           )
+
+        #clean memory
+        del current_user
+        connect.close()
+        return articles, cache_time
+
+    ANSWERER.answer(msg, compute)
