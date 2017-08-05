@@ -223,14 +223,6 @@ class JiraUser:
                                             .format(SERVER, current_issue.fields.project.id, BASIC_AUTH[0], BASIC_AUTH[1])
                     }
             
-            if SERVER == 'https://jira.hflabs.ru/':
-                issue['closer'] = str(current_issue.fields.customfield_10010)
-                closer_username = self.get_username(JiraName = current_issue.fields.customfield_10010.name)
-                if closer_username:
-                    closer_link = 't.me/{}'.format(closer_username)
-                else:
-                    closer_link = None
-                issue['closer_link'] = closer_link
             return issue
         else:
             return False
