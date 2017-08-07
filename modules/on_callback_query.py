@@ -39,13 +39,13 @@ def on_callback_query(msg):
         #check special logic if HFLabs
         server = current_user.get_server()
         if server == 'https://jira.hflabs.ru/':
-            answer_text = '{} [{}: {}]({})\n*Поставил:* [{}]({})\n*Делает:* [{}]({})\n*Закрывает:* [{}]({})\n\n📄 *Подробности:*\n{}'.\
-                format(issue['status_logo'], issue['key'], issue['status'], issue['link'],\
+            answer_text = '{} *{}*: [{} {}]({}) {}\n\n  *Поставил:* [{}]({})\n  *Делает:* [{}]({})\n  *Закрывает:* [{}]({})\n\n📄 *Подробности:*\n{}'.\
+                format(issue['priority_logo'], issue['priority'], issue['key'], issue['status'], issue['link'], issue['status_logo'],\
                 issue['author'], issue['author_link'], issue['worker'], issue['worker_link'],\
                 issue['closer'], issue['closer_link'], issue['desc'])
         else:
-            answer_text = '{} [{}: {}]({})\n*Поставил:* [{}]({})\n*Делает:* [{}]({})\n\n📄 *Подробности:*\n{}'.\
-                format(issue['status_logo'], issue['key'], issue['status'], issue['link'],\
+            answer_text = '{} *{}*: [{} {}]({}) {}\n\n  *Поставил:* [{}]({})\n  *Делает:* [{}]({})\n\n📄 *Подробности:*\n{}'.\
+                format(issue['priority_logo'], issue['priority'], issue['key'], issue['status'], issue['link'], issue['status_logo'],\
                 issue['author'], issue['author_link'], issue['worker'], issue['worker_link'],\
                 issue['desc'])
 
@@ -62,13 +62,13 @@ def on_callback_query(msg):
         #check special logic if HFLabs
         server = current_user.get_server()
         if server == 'https://jira.hflabs.ru/':
-            answer_text = '{} [{}: {}]({})\n*Поставил:* [{}]({})\n*Делает:* [{}]({})\n*Закрывает:* [{}]({})\n\n📄 *Подробности:*\n{}'.\
-                format(issue['status_logo'], issue['key'], issue['status'], issue['link'],\
+            answer_text = '{} *{}*: [{} {}]({}) {}\n\n  *Поставил:* [{}]({})\n  *Делает:* [{}]({})\n  *Закрывает:* [{}]({})\n\n📄 *Подробности:*\n{}'.\
+                format(issue['priority_logo'], issue['priority'], issue['key'], issue['status'], issue['link'], issue['status_logo'],\
                 issue['author'], issue['author_link'], issue['worker'], issue['worker_link'],\
                 issue['closer'], issue['closer_link'], issue['summary'])
         else:
-            answer_text = '{} [{}: {}]({})\n*Поставил:* [{}]({})\n*Делает:* [{}]({})\n\n📄 *Подробности:*\n{}'.\
-                format(issue['status_logo'], issue['key'], issue['status'], issue['link'],\
+            answer_text = '{} *{}*: [{} {}]({}) {}\n\n  *Поставил:* [{}]({})\n  *Делает:* [{}]({})\n\n📄 *Подробности:*\n{}'.\
+                format(issue['priority_logo'], issue['priority'], issue['key'], issue['status'], issue['link'], issue['status_logo'],\
                 issue['author'], issue['author_link'], issue['worker'], issue['worker_link'],\
                 issue['summary'])
 

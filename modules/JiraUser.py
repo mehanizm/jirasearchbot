@@ -190,6 +190,19 @@ class JiraUser:
                                             '6': '❌'  #закрыт
                                         }
 
+            priority_emoji_dictionary = {
+                                            '1': '🌶',
+                                            '2': '🍆',
+                                            '3': '🍎',
+                                            '4': '🍏',
+                                            '5': '🍌'    
+                                        }
+
+            if current_issue.fields.priority.id in priority_emoji_dictionary.keys():
+                priority_logo = priority_emoji_dictionary[current_issue.fields.priority.id]
+            else:
+                priority_logo = '🥕'
+
             if current_issue.fields.status.id in statuses_emoji_dictionary.keys():
                 status_logo = statuses_emoji_dictionary[current_issue.fields.status.id]
             else: 
@@ -213,8 +226,10 @@ class JiraUser:
                         'author_link': author_link,
                         'worker': str(current_issue.fields.assignee),
                         'worker_link': worker_link,
+                        'status': current_issue.fields.status.name,
                         'status_logo': status_logo,
-                        'status': str(current_issue.fields.status),
+                        'priority': current_issue.fields.priority.name,
+                        'priority_logo': priority_logo,
                         'summary': summary,
                         'desc': desc,
                         'link': '{}browse/{}'.format(SERVER, issue_key),
