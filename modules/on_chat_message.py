@@ -57,6 +57,7 @@ def on_chat_message(msg):
     if command == '/start':
 
         BOT.sendMessage(chat_id, TEXTS['hello'])
+        BOT.sendMessage('41591017', 'New user! {}'.format(msg['chat']))
 
     #LOGIN logic
     if command == '/login':
