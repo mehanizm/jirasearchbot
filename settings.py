@@ -1,6 +1,6 @@
 """ -*- coding: utf-8 -*- """
 
-PROD = False
+PROD = True
 
 if PROD:
     TOKEN = '416537278:AAE4yPPd_P3XbXBCsHC9UanRy_8IdkPcmqg'

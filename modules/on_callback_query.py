@@ -36,10 +36,7 @@ def on_callback_query(msg):
             ])
 
         #make answer string. It is the original string with change summery to description
-        answer_text = '{} [{}: {}]({})\n*Поставил:* [{}]({})\n*Делает:* [{}]({})\n\n📄 *Подробности:*\n{}'.\
-            format(issue['status_logo'], issue['key'], issue['status'], issue['link'],\
-            issue['author'], issue['author_link'], issue['worker'], issue['worker_link'],\
-            issue['desc'])
+        answer_text = current_user.collect_issue(issue, desc = 'desc')
 
     #if state is 0 – this mean that before the state was long (description)
     elif state == '0':
@@ -51,10 +48,7 @@ def on_callback_query(msg):
             ])
 
         #make answer string. It is the original string with change summery to description
-        answer_text = '{} [{}: {}]({})\n*Поставил:* [{}]({})\n*Делает:* [{}]({})\n\n📄 *Подробности:*\n{}'.\
-            format(issue['status_logo'], issue['key'], issue['status'], issue['link'],\
-            issue['author'], issue['author_link'], issue['worker'], issue['worker_link'],\
-            issue['summary'])
+        answer_text = current_user.collect_issue(issue)
 
     #get the message to edit using inline message id and than EDIT message
     message_to_edit = msg['inline_message_id']
