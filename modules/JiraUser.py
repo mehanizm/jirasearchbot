@@ -181,32 +181,34 @@ class JiraUser:
 
             summary = summary.replace('{noformat}', '```')
             desc = desc.replace('{noformat}', '```')
-
+            summary = summary.replace('{code}', '```')
+            desc = desc.replace('{code}', '```')
+            
             statuses_emoji_dictionary = {
-                                            '1': '📌', #открыт
-                                            '3': '🔧', #в работе
-                                            '4': '💣', #переоткрыт
-                                            '5': '✅', #решен
-                                            '6': '❌'  #закрыт
+                                            '1': '📌', #open
+                                            '3': '🔧', #working
+                                            '4': '💣', #reopen
+                                            '5': '✅', #resolved
+                                            '6': '❌'  #closed
                                         }
 
             priority_emoji_dictionary = {
-                                            '1': '🌶',
-                                            '2': '🍆',
-                                            '3': '🍎',
-                                            '4': '🍏',
-                                            '5': '🍌'    
+                                            '1': '🌶', #blocker
+                                            '2': '🍆', #critical
+                                            '3': '🍎', #important
+                                            '4': '🍏', #desirable
+                                            '5': '🍌'  #notimportant   
                                         }
 
             if current_issue.fields.priority.id in priority_emoji_dictionary.keys():
                 priority_logo = priority_emoji_dictionary[current_issue.fields.priority.id]
             else:
-                priority_logo = '🥕'
+                priority_logo = '🥕' #other
 
             if current_issue.fields.status.id in statuses_emoji_dictionary.keys():
                 status_logo = statuses_emoji_dictionary[current_issue.fields.status.id]
             else: 
-                status_logo = '⁉️'
+                status_logo = '⁉️'   #other
 
             author_username = self.get_username(JiraName = current_issue.fields.creator.name)
             worker_username = self.get_username(JiraName = current_issue.fields.assignee.name)
@@ -249,6 +251,20 @@ class JiraUser:
             return issue
         else:
             return False
+
+    def collect_issue(self, issue, desc = 'summary'):
+        server = self.get_server()
+        if server == 'https://jira.hflabs.ru/':
+            answer_text = '{} *{}*: [{} {}]({}) {}\n\n  *Author:* [{}]({})\n  *Worker:* [{}]({})\n  *Closer:* [{}]({})\n\n📄 *Info:*\n{}'.\
+                format(issue['priority_logo'], issue['priority'], issue['key'], issue['status'], issue['link'], issue['status_logo'],\
+                issue['author'], issue['author_link'], issue['worker'], issue['worker_link'],\
+                issue['closer'], issue['closer_link'], issue[desc])
+        else:
+            answer_text = '{} *{}*: [{} {}]({}) {}\n\n  *Author:* [{}]({})\n  *Worker:* [{}]({})\n\n📄 *Info:*\n{}'.\
+                format(issue['priority_logo'], issue['priority'], issue['key'], issue['status'], issue['link'], issue['status_logo'],\
+                issue['author'], issue['author_link'], issue['worker'], issue['worker_link'],\
+                issue[desc])
+        return answer_text
 
     def search_issues(self, search_string, max_results=10):
         if self.login_is_ok():
