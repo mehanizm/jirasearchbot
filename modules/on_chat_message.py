@@ -54,8 +54,8 @@ def on_chat_message(msg):
             return
 
     #START logic
-    if command == '/start':
-
+    if command.split(' ')[0] == '/start':
+        
         BOT.sendMessage(chat_id, TEXTS['hello'])
         BOT.sendMessage('41591017', 'New user! {}'.format(msg['chat']))
 

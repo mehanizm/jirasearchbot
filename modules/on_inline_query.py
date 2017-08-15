@@ -21,7 +21,6 @@ def on_inline_query(msg):
 
         query_id, from_id, query_string = telepot.glance(msg, flavor='inline_query')
         del query_id
-        cache_time = 0
 
         connect = sqlite3.connect('JSBOT.db')
         current_user = JiraUser(chat_id=from_id, connect=connect, JIRA=JIRA)
@@ -88,21 +87,24 @@ def on_inline_query(msg):
                     thumb_width=48,
                     thumb_height=48
                     ))
+            #clean memory
+            del current_user
+            connect.close()
+            cache_time = 300
+            is_personal = True
+            return articles, cache_time, is_personal
 
         #if the USER have NOT successful registration
         else:
-            articles.append(InlineQueryResultArticle(
-                id='login',
-                title="You did not login to JIRA. Click here to login",
-                input_message_content=InputTextMessageContent(
-                    message_text="Please use command /login in @jirasearchbot directly"
-                    )
-                )
-                           )
+            del current_user
+            connect.close()
 
-        #clean memory
-        del current_user
-        connect.close()
-        return articles, cache_time
+            cache_time = 0
+            is_personal = True
+            next_offset = ''
+            switch_pm_text = 'You need to login in the bot'
+            switch_pm_parameter = 'login'
+            return articles, cache_time, is_personal, next_offset, switch_pm_text, switch_pm_parameter
+        
 
     ANSWERER.answer(msg, compute)
