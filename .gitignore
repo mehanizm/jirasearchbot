@@ -8,6 +8,7 @@ __pycache__/
 
 #VScode
 .vscode
+.DS_Store
 
 #DB
 *.db
